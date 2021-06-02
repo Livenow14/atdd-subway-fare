@@ -93,14 +93,11 @@ public class LineService {
     @Transactional
     public LineResponse addLineStation(Long lineId, SectionRequest request) {
         Line line = findLineById(lineId);
-        EntityManager entityManager = new EntityManager(line);
 
         Station upStation = stationDao.findById(request.getUpStationId());
         Station downStation = stationDao.findById(request.getDownStationId());
         line.addSection(upStation, downStation, request.getDistance());
 
-
-        entityManager.dirtyChecking(line);
         sectionDao.deleteByLineId(lineId);
         sectionDao.insertSections(line);
 
