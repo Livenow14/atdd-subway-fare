@@ -2,6 +2,7 @@ package wooteco.subway.line.application;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import wooteco.subway.entitymanager.EntityManager;
 import wooteco.subway.exception.DuplicateException;
 import wooteco.subway.line.dao.LineDao;
 import wooteco.subway.line.dao.SectionDao;
@@ -75,7 +76,13 @@ public class LineService {
 
     @Transactional
     public void updateLine(Long id, LineRequest lineUpdateRequest) {
-        lineDao.update(new Line(id, lineUpdateRequest.getName(), lineUpdateRequest.getColor()));
+        Line line = findLineById(id);
+        EntityManager entityManager = new EntityManager(line);
+        line.changeName(lineUpdateRequest.getName());
+        line.changeColor(lineUpdateRequest.getColor());
+
+        entityManager.dirtyChecking(line);
+        //lineDao.update(new Line(id, lineUpdateRequest.getName(), lineUpdateRequest.getColor()));
     }
 
     @Transactional
@@ -86,11 +93,14 @@ public class LineService {
     @Transactional
     public LineResponse addLineStation(Long lineId, SectionRequest request) {
         Line line = findLineById(lineId);
+        EntityManager entityManager = new EntityManager(line);
 
         Station upStation = stationDao.findById(request.getUpStationId());
         Station downStation = stationDao.findById(request.getDownStationId());
         line.addSection(upStation, downStation, request.getDistance());
 
+
+        entityManager.dirtyChecking(line);
         sectionDao.deleteByLineId(lineId);
         sectionDao.insertSections(line);
 

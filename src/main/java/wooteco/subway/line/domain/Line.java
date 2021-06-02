@@ -92,4 +92,12 @@ public class Line {
     public int getExtraFare() {
         return extraFare;
     }
+
+    public void changeName(String name) {
+        this.name = name;
+    }
+
+    public void changeColor(String color) {
+        this.color = color;
+    }
 }
