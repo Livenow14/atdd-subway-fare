@@ -82,7 +82,7 @@ public class AuthAcceptanceTest extends AcceptanceTest {
                 .accept(MediaType.APPLICATION_JSON_VALUE)
                 .when().get("/members/me")
                 .then().log().all()
-                .statusCode(HttpStatus.UNAUTHORIZED.value());
+                .statusCode(HttpStatus.BAD_REQUEST.value());
     }
 
     public static ExtractableResponse<Response> 회원_등록되어_있음(String email, String password, Integer age) {
