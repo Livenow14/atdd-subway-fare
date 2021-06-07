@@ -9,6 +9,7 @@ cd $REPOSITORY/$PROJECT_NAME/
 
 echo "> git reset --hard"
 
+git clean -fd
 git reset --hard # 깃허브 초기화
 
 BRANCH="step1"
@@ -33,7 +34,7 @@ fi
 
 echo "> 새 어플리케이션 배포"
 
-JAR_NAME=$(ls -tr /*.jar | tail -n 1)
+JAR_NAME=$(ls -tr ./*.jar | tail -n 1)
 
 echo "> JAR Name: $JAR_NAME"
 
