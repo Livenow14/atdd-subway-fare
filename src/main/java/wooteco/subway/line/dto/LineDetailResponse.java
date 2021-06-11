@@ -50,7 +50,15 @@ public class LineDetailResponse {
         return distance;
     }
 
+    public String getColor() {
+        return color;
+    }
+
     public List<StationResponse> getStations() {
         return stations;
+    }
+
+    public List<SectionResponse> getSections() {
+        return sections;
     }
 }

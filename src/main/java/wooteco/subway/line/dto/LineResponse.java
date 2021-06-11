@@ -42,4 +42,12 @@ public class LineResponse {
     public List<StationResponse> getStations() {
         return stations;
     }
+
+    public String getColor() {
+        return color;
+    }
+
+    public int getExtraFare() {
+        return extraFare;
+    }
 }
