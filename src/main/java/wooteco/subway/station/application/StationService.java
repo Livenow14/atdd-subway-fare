@@ -6,7 +6,7 @@ import wooteco.subway.exception.DuplicateException;
 import wooteco.subway.exception.InvalidInputException;
 import wooteco.subway.exception.NotFoundException;
 import wooteco.subway.line.dao.SectionDao;
-import wooteco.subway.station.dao.StationDao;
+import wooteco.subway.station.dao.StationRepository;
 import wooteco.subway.station.domain.Station;
 import wooteco.subway.station.dto.StationRequest;
 import wooteco.subway.station.dto.StationResponse;
@@ -19,30 +19,30 @@ import java.util.stream.Collectors;
 @Transactional(readOnly = true)
 public class StationService {
 
-    private final StationDao stationDao;
+    private final StationRepository stationsRepository;
     private final SectionDao sectionDao;
 
-    public StationService(StationDao stationDao, SectionDao sectionDao) {
-        this.stationDao = stationDao;
+    public StationService(StationRepository stationsRepository, SectionDao sectionDao) {
+        this.stationsRepository = stationsRepository;
         this.sectionDao = sectionDao;
     }
 
     @Transactional
     public StationResponse saveStation(StationRequest stationRequest) {
-        if (stationDao.existsByName(stationRequest.getName())) {
+        if (stationsRepository.existsByName(stationRequest.getName())) {
             throw new DuplicateException("이미 존재하는 역 이름 입니다. (입력된 이름 값 : " + stationRequest.getName() + ")");
         }
 
-        Station station = stationDao.insert(stationRequest.toStation());
+        Station station = stationsRepository.save(stationRequest.toStation());
         return StationResponse.of(station);
     }
 
     public Station findStationById(Long id) {
-        return stationDao.findById(id);
+        return stationsRepository.findById(id).orElseThrow(() -> new NotFoundException("찾을 수 없는 역입니다"));
     }
 
     public List<StationResponse> findAllStationResponses() {
-        List<Station> stations = stationDao.findAll();
+        List<Station> stations = stationsRepository.findAll();
 
         return stations.stream()
                 .map(StationResponse::of)
@@ -57,6 +57,6 @@ public class StationService {
         if (Objects.isNull(findStationById(id))) {
             throw new NotFoundException("삭제할 역이 등록되어 있지 않습니다.");
         }
-        stationDao.deleteById(id);
+        stationsRepository.deleteById(id);
     }
 }

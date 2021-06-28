@@ -3,6 +3,7 @@ package wooteco.subway.line.application;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import wooteco.subway.exception.DuplicateException;
+import wooteco.subway.exception.NotFoundException;
 import wooteco.subway.line.dao.LineDao;
 import wooteco.subway.line.dao.SectionDao;
 import wooteco.subway.line.domain.Line;
@@ -11,7 +12,7 @@ import wooteco.subway.line.dto.LineDetailResponse;
 import wooteco.subway.line.dto.LineRequest;
 import wooteco.subway.line.dto.LineResponse;
 import wooteco.subway.line.dto.SectionRequest;
-import wooteco.subway.station.dao.StationDao;
+import wooteco.subway.station.dao.StationRepository;
 import wooteco.subway.station.domain.Station;
 
 import java.util.List;
@@ -22,12 +23,12 @@ import java.util.stream.Collectors;
 public class LineService {
     private final LineDao lineDao;
     private final SectionDao sectionDao;
-    private final StationDao stationDao;
+    private final StationRepository stationRepository;
 
-    public LineService(LineDao lineDao, SectionDao sectionDao, StationDao stationDao) {
+    public LineService(LineDao lineDao, SectionDao sectionDao, StationRepository stationRepository) {
         this.lineDao = lineDao;
         this.sectionDao = sectionDao;
-        this.stationDao = stationDao;
+        this.stationRepository = stationRepository;
     }
 
     @Transactional
@@ -45,8 +46,8 @@ public class LineService {
 
     private Section addInitSection(Line line, LineRequest request) {
         if (request.getUpStationId() != null && request.getDownStationId() != null) {
-            Station upStation = stationDao.findById(request.getUpStationId());
-            Station downStation = stationDao.findById(request.getDownStationId());
+            Station upStation = findStationById(request.getUpStationId());
+            Station downStation = findStationById(request.getDownStationId());
             Section section = new Section(upStation, downStation, request.getDistance());
             return sectionDao.insert(line, section);
         }
@@ -87,8 +88,8 @@ public class LineService {
     public LineResponse addLineStation(Long lineId, SectionRequest request) {
         Line line = findLineById(lineId);
 
-        Station upStation = stationDao.findById(request.getUpStationId());
-        Station downStation = stationDao.findById(request.getDownStationId());
+        Station upStation = findStationById(request.getUpStationId());
+        Station downStation = findStationById(request.getDownStationId());
         line.addSection(upStation, downStation, request.getDistance());
 
         sectionDao.deleteByLineId(lineId);
@@ -100,7 +101,7 @@ public class LineService {
     @Transactional
     public void removeLineStation(Long lineId, Long stationId) {
         Line line = findLineById(lineId);
-        Station station = stationDao.findById(stationId);
+        Station station = findStationById(stationId);
         line.removeSection(station);
 
         sectionDao.deleteByLineId(lineId);
@@ -117,5 +118,9 @@ public class LineService {
     public LineDetailResponse findLineDetail(Long id) {
         Line line = findLineById(id);
         return LineDetailResponse.of(line);
+    }
+
+    private Station findStationById(Long stationId) {
+        return stationRepository.findById(stationId).orElseThrow(() -> new NotFoundException("찾을 수 없는 역입니다."));
     }
 }
