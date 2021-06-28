@@ -17,7 +17,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-@Repository
 @CacheConfig(cacheNames = {"cache::shortestPath"})
 public class LineDao {
     private final JdbcTemplate jdbcTemplate;
