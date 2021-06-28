@@ -32,16 +32,10 @@ public class Station {
         return name;
     }
 
-    public boolean isSameStation(Station station) {
-        return this.id.equals(station.getId());
-    }
-
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
         Station station = (Station) o;
-        return Objects.equals(id, station.id) && Objects.equals(name, station.name);
+        return this.id.equals(station.getId());
     }
 
     @Override

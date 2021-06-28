@@ -39,6 +39,8 @@ public class PathService {
             Station arrivalStation = stationService.findStationById(arrival);
             SubwayPath subwayPath = pathFinder.findPath(lines, departureStation, arrivalStation);
 
+            System.out.println("여기?4444");
+
             return PathResponseAssembler.assemble(subwayPath, loginMember.getAge());
         } catch (Exception e) {
             throw new InvalidPathException(e.getMessage());

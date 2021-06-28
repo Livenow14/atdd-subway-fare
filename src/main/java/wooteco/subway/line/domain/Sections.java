@@ -64,14 +64,14 @@ public class Sections {
 
     private void addSectionUpToUp(Section section) {
         this.sections.stream()
-                .filter(it -> it.getUpStation().isSameStation(section.getUpStation()))
+                .filter(it -> it.getUpStation().equals(section.getUpStation()))
                 .findFirst()
                 .ifPresent(it -> replaceSectionWithDownStation(section, it));
     }
 
     private void addSectionDownToDown(Section section) {
         this.sections.stream()
-                .filter(it -> it.getDownStation().isSameStation(section.getDownStation()))
+                .filter(it -> it.getDownStation().equals(section.getDownStation()))
                 .findFirst()
                 .ifPresent(it -> replaceSectionWithUpStation(section, it));
     }
@@ -116,8 +116,7 @@ public class Sections {
                 .collect(Collectors.toList());
 
         Section section = this.sections.stream()
-                .filter(it -> downStations.stream()
-                        .noneMatch(dit -> dit.isSameStation(it.getUpStation())))
+                .filter(it -> !downStations.contains(it.getUpStation()))
                 .findFirst()
                 .orElseThrow(RuntimeException::new);
 
@@ -126,7 +125,7 @@ public class Sections {
 
     private Section findSectionByNextUpStation(Station station) {
         return this.sections.stream()
-                .filter(it -> it.getUpStation().isSameStation(station))
+                .filter(it -> it.getUpStation().equals(station))
                 .findFirst()
                 .orElse(null);
     }
@@ -137,10 +136,10 @@ public class Sections {
         }
 
         Optional<Section> upSection = sections.stream()
-                .filter(it -> it.getUpStation().isSameStation(station))
+                .filter(it -> it.getUpStation().equals(station))
                 .findFirst();
         Optional<Section> downSection = sections.stream()
-                .filter(it -> it.getDownStation().isSameStation(station))
+                .filter(it -> it.getDownStation().equals(station))
                 .findFirst();
 
         if (upSection.isPresent() && downSection.isPresent()) {

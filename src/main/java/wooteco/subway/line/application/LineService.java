@@ -69,10 +69,6 @@ public class LineService {
 
     public LineResponse findLineResponseById(Long id) {
         Line persistLine = findLineById(id);
-        List<Section> sections = persistLine.getSections().getSections();
-
-        List<Station> stations = persistLine.getStations();
-
         return LineResponse.of(persistLine);
     }
 
