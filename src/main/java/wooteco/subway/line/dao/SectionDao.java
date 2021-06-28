@@ -61,7 +61,7 @@ public class SectionDao {
     }
 
     public boolean existsByStationId(Long stationId) {
-        String sql =  "select exists(select * from SECTION where section.up_station_id = ? or section.down_station_id = ?)";
+        String sql = "select exists(select * from SECTION where section.up_station_id = ? or section.down_station_id = ?)";
         return jdbcTemplate.queryForObject(sql, Boolean.class, stationId, stationId);
     }
 }

@@ -2,13 +2,21 @@ package wooteco.subway.line.domain;
 
 import wooteco.subway.station.domain.Station;
 
+import javax.persistence.*;
 import java.util.List;
 
+@Entity
 public class Line {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "line_id")
     private Long id;
     private String name;
     private String color;
     private int extraFare;
+
+    @Embedded
     private Sections sections = new Sections();
 
     public Line() {
@@ -91,5 +99,13 @@ public class Line {
 
     public int getExtraFare() {
         return extraFare;
+    }
+
+    public void modifyName(String name) {
+        this.name = name;
+    }
+
+    public void modifyColor(String color) {
+        this.color = color;
     }
 }

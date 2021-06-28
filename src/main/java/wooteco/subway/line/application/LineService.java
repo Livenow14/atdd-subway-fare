@@ -4,8 +4,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import wooteco.subway.exception.DuplicateException;
 import wooteco.subway.exception.NotFoundException;
-import wooteco.subway.line.dao.LineDao;
-import wooteco.subway.line.dao.SectionDao;
+import wooteco.subway.line.dao.LineRepository;
+import wooteco.subway.line.dao.SectionRepository;
 import wooteco.subway.line.domain.Line;
 import wooteco.subway.line.domain.Section;
 import wooteco.subway.line.dto.LineDetailResponse;
@@ -21,35 +21,37 @@ import java.util.stream.Collectors;
 @Service
 @Transactional(readOnly = true)
 public class LineService {
-    private final LineDao lineDao;
-    private final SectionDao sectionDao;
+    private final LineRepository lineRepository;
+    private final SectionRepository sectionRepository;
     private final StationRepository stationRepository;
 
-    public LineService(LineDao lineDao, SectionDao sectionDao, StationRepository stationRepository) {
-        this.lineDao = lineDao;
-        this.sectionDao = sectionDao;
+    public LineService(LineRepository lineRepository, SectionRepository sectionRepository, StationRepository stationRepository) {
+        this.lineRepository = lineRepository;
+        this.sectionRepository = sectionRepository;
         this.stationRepository = stationRepository;
     }
 
     @Transactional
     public LineResponse saveLine(LineRequest request) {
-        if (lineDao.existsByName(request.getName())) {
+        if (lineRepository.existsByName(request.getName())) {
             throw new DuplicateException("이미 존재하는 노선 이름 입니다. (입력된 이름 값 : " + request.getName() + ")");
         }
-        if (lineDao.existsByColor(request.getColor())) {
+        if (lineRepository.existsByColor(request.getColor())) {
             throw new DuplicateException("이미 존재하는 노선 색깔 입니다. (입력된 색깔 값 : " + request.getColor() + ")");
         }
-        Line persistLine = lineDao.insert(new Line(request.getName(), request.getColor(), request.getExtraFare()));
-        persistLine.addSection(addInitSection(persistLine, request));
+        Line persistLine = lineRepository.save(new Line(request.getName(), request.getColor(), request.getExtraFare()));
+        persistLine.addSection(addInitSection(request));
         return LineResponse.of(persistLine);
     }
 
-    private Section addInitSection(Line line, LineRequest request) {
+    private Section addInitSection(LineRequest request) {
         if (request.getUpStationId() != null && request.getDownStationId() != null) {
             Station upStation = findStationById(request.getUpStationId());
             Station downStation = findStationById(request.getDownStationId());
             Section section = new Section(upStation, downStation, request.getDistance());
-            return sectionDao.insert(line, section);
+
+            //TODO
+            return sectionRepository.save(section);
         }
         return null;
     }
@@ -62,26 +64,32 @@ public class LineService {
     }
 
     public List<Line> findLines() {
-        return lineDao.findAll();
+        return lineRepository.findAll();
     }
 
     public LineResponse findLineResponseById(Long id) {
         Line persistLine = findLineById(id);
+        List<Section> sections = persistLine.getSections().getSections();
+
+        List<Station> stations = persistLine.getStations();
+
         return LineResponse.of(persistLine);
     }
 
     public Line findLineById(Long id) {
-        return lineDao.findById(id);
+        return lineRepository.findById(id).orElseThrow(() -> new NotFoundException("찾을 수 없는 노선입니다"));
     }
 
     @Transactional
     public void updateLine(Long id, LineRequest lineUpdateRequest) {
-        lineDao.update(new Line(id, lineUpdateRequest.getName(), lineUpdateRequest.getColor()));
+        Line line = findLineById(id);
+        line.modifyName(lineUpdateRequest.getName());
+        line.modifyColor(lineUpdateRequest.getColor());
     }
 
     @Transactional
     public void deleteLineById(Long id) {
-        lineDao.deleteById(id);
+        lineRepository.deleteById(id);
     }
 
     @Transactional
@@ -92,9 +100,6 @@ public class LineService {
         Station downStation = findStationById(request.getDownStationId());
         line.addSection(upStation, downStation, request.getDistance());
 
-        sectionDao.deleteByLineId(lineId);
-        sectionDao.insertSections(line);
-
         return LineResponse.of(line);
     }
 
@@ -103,9 +108,6 @@ public class LineService {
         Line line = findLineById(lineId);
         Station station = findStationById(stationId);
         line.removeSection(station);
-
-        sectionDao.deleteByLineId(lineId);
-        sectionDao.insertSections(line);
     }
 
     public List<LineDetailResponse> findLineDetails() {

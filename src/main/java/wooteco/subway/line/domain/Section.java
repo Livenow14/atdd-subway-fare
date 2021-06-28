@@ -3,10 +3,24 @@ package wooteco.subway.line.domain;
 import wooteco.subway.exception.InvalidInputException;
 import wooteco.subway.station.domain.Station;
 
+import javax.persistence.*;
+
+@Entity
 public class Section {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "section_id")
     private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "up_station_id")
     private Station upStation;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "down_station_id")
     private Station downStation;
+
     private int distance;
 
     public Section() {

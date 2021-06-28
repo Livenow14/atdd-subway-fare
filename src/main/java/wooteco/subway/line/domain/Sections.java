@@ -4,24 +4,32 @@ import wooteco.subway.exception.DuplicateException;
 import wooteco.subway.exception.InvalidInputException;
 import wooteco.subway.station.domain.Station;
 
+import javax.persistence.CascadeType;
+import javax.persistence.Embeddable;
+import javax.persistence.JoinColumn;
+import javax.persistence.OneToMany;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+@Embeddable
 public class Sections {
-    private List<Section> sections = new ArrayList<>();
 
-    public List<Section> getSections() {
-        return sections;
-    }
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "line_id")
+    private List<Section> sections = new ArrayList<>();
 
     public Sections() {
     }
 
     public Sections(List<Section> sections) {
         this.sections = sections;
+    }
+
+    public List<Section> getSections() {
+        return sections;
     }
 
     public void addSection(Section section) {
@@ -42,7 +50,7 @@ public class Sections {
     private void checkExistedAny(Section section) {
         List<Station> stations = getStations();
         if (!stations.contains(section.getUpStation()) && !stations.contains(section.getDownStation())) {
-            throw new InvalidInputException(String.format("노선에 등록하려는 구간의 역들이 포함되어있지 않습니다. 입력한 역 이름: %s, %s", section.getUpStation().getName(), section.getDownStation().getName() ));
+            throw new InvalidInputException(String.format("노선에 등록하려는 구간의 역들이 포함되어있지 않습니다. 입력한 역 이름: %s, %s", section.getUpStation().getName(), section.getDownStation().getName()));
         }
     }
 
@@ -56,14 +64,14 @@ public class Sections {
 
     private void addSectionUpToUp(Section section) {
         this.sections.stream()
-                .filter(it -> it.getUpStation().equals(section.getUpStation()))
+                .filter(it -> it.getUpStation().isSameStation(section.getUpStation()))
                 .findFirst()
                 .ifPresent(it -> replaceSectionWithDownStation(section, it));
     }
 
     private void addSectionDownToDown(Section section) {
         this.sections.stream()
-                .filter(it -> it.getDownStation().equals(section.getDownStation()))
+                .filter(it -> it.getDownStation().isSameStation(section.getDownStation()))
                 .findFirst()
                 .ifPresent(it -> replaceSectionWithUpStation(section, it));
     }
@@ -107,15 +115,18 @@ public class Sections {
                 .map(it -> it.getDownStation())
                 .collect(Collectors.toList());
 
-        return this.sections.stream()
-                .filter(it -> !downStations.contains(it.getUpStation()))
+        Section section = this.sections.stream()
+                .filter(it -> downStations.stream()
+                        .noneMatch(dit -> dit.isSameStation(it.getUpStation())))
                 .findFirst()
                 .orElseThrow(RuntimeException::new);
+
+        return section;
     }
 
     private Section findSectionByNextUpStation(Station station) {
         return this.sections.stream()
-                .filter(it -> it.getUpStation().equals(station))
+                .filter(it -> it.getUpStation().isSameStation(station))
                 .findFirst()
                 .orElse(null);
     }
@@ -126,10 +137,10 @@ public class Sections {
         }
 
         Optional<Section> upSection = sections.stream()
-                .filter(it -> it.getUpStation().equals(station))
+                .filter(it -> it.getUpStation().isSameStation(station))
                 .findFirst();
         Optional<Section> downSection = sections.stream()
-                .filter(it -> it.getDownStation().equals(station))
+                .filter(it -> it.getDownStation().isSameStation(station))
                 .findFirst();
 
         if (upSection.isPresent() && downSection.isPresent()) {

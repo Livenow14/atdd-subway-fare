@@ -5,7 +5,7 @@ import org.springframework.transaction.annotation.Transactional;
 import wooteco.subway.exception.DuplicateException;
 import wooteco.subway.exception.InvalidInputException;
 import wooteco.subway.exception.NotFoundException;
-import wooteco.subway.line.dao.SectionDao;
+import wooteco.subway.line.dao.SectionRepository;
 import wooteco.subway.station.dao.StationRepository;
 import wooteco.subway.station.domain.Station;
 import wooteco.subway.station.dto.StationRequest;
@@ -20,11 +20,11 @@ import java.util.stream.Collectors;
 public class StationService {
 
     private final StationRepository stationsRepository;
-    private final SectionDao sectionDao;
+    private final SectionRepository sectionRespository;
 
-    public StationService(StationRepository stationsRepository, SectionDao sectionDao) {
+    public StationService(StationRepository stationsRepository, SectionRepository sectionRespository) {
         this.stationsRepository = stationsRepository;
-        this.sectionDao = sectionDao;
+        this.sectionRespository = sectionRespository;
     }
 
     @Transactional
@@ -51,7 +51,7 @@ public class StationService {
 
     @Transactional
     public void deleteStationById(Long id) {
-        if (sectionDao.existsByStationId(id)) {
+        if ((sectionRespository.existsByStationId(id)) > 0) {
             throw new InvalidInputException("노선에 등록된 역은 삭제할 수 없습니다.");
         }
         if (Objects.isNull(findStationById(id))) {

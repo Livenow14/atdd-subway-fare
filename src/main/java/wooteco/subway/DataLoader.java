@@ -3,8 +3,8 @@ package wooteco.subway;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
-import wooteco.subway.line.dao.LineDao;
-import wooteco.subway.line.dao.SectionDao;
+import wooteco.subway.line.dao.LineRepository;
+import wooteco.subway.line.dao.SectionRepository;
 import wooteco.subway.line.domain.Line;
 import wooteco.subway.line.domain.Section;
 import wooteco.subway.member.dao.MemberDao;
@@ -16,14 +16,14 @@ import wooteco.subway.station.domain.Station;
 @Profile("local")
 public class DataLoader implements CommandLineRunner {
     private final StationRepository stationRepository;
-    private final LineDao lineDao;
-    private final SectionDao sectionDao;
+    private final LineRepository lineRepository;
+    private final SectionRepository sectionRepository;
     private final MemberDao memberDao;
 
-    public DataLoader(StationRepository stationRepository, LineDao lineDao, SectionDao sectionDao, MemberDao memberDao) {
+    public DataLoader(StationRepository stationRepository, LineRepository lineRepository, SectionRepository sectionRepository, MemberDao memberDao) {
         this.stationRepository = stationRepository;
-        this.lineDao = lineDao;
-        this.sectionDao = sectionDao;
+        this.lineRepository = lineRepository;
+        this.sectionRepository = sectionRepository;
         this.memberDao = memberDao;
     }
 
@@ -36,15 +36,13 @@ public class DataLoader implements CommandLineRunner {
             Station 역삼역 = stationRepository.save(new Station("역삼역"));
             Station 잠실역 = stationRepository.save(new Station("잠실역"));
 
-            Line 신분당선 = lineDao.insert(new Line("신분당선", "red lighten-1", 900));
+            Line 신분당선 = lineRepository.save(new Line("신분당선", "red lighten-1", 900));
             신분당선.addSection(new Section(강남역, 판교역, 10));
             신분당선.addSection(new Section(판교역, 정자역, 10));
-            sectionDao.insertSections(신분당선);
 
-            Line 이호선 = lineDao.insert(new Line("2호선", "green lighten-1", 0));
+            Line 이호선 = lineRepository.save(new Line("2호선", "green lighten-1", 0));
             이호선.addSection(new Section(강남역, 역삼역, 10));
             이호선.addSection(new Section(역삼역, 잠실역, 10));
-            sectionDao.insertSections(이호선);
 
             Member member = new Member("email@email.com", "password", 10);
             memberDao.insert(member);

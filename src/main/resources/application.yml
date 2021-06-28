@@ -12,7 +12,7 @@ spring:
       ddl-auto: create
     properties:
       hibernate:
-        format-sql: true
+        format_sql: true
     show-sql: true
 handlebars:
   suffix: .html
